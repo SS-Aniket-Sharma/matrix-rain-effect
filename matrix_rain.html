@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Rain</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas to full screen
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Characters to use (Matrix-like)
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const alphabet = katakana + latin + nums;
+
+        const fontSize = 16;
+        const columns = Math.floor(canvas.width / fontSize);
+
+        // Array of drops
+        // Each drop contains its current y position and its speed
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = {
+                y: 1,
+                speed: Math.random() * 0.5 + 0.5 // Speed between 0.5 and 1.0
+            };
+        }
+
+        let isRed = false;
+
+        // Click event to toggle color
+        window.addEventListener('click', () => {
+            isRed = !isRed;
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Re-initialize drops if needed or just let them fall off/add new ones
+            // For simplicity, we just expand/shrink the array logic in the loop or reset
+            const newColumns = Math.floor(canvas.width / fontSize);
+            if (newColumns > drops.length) {
+                for (let i = drops.length; i < newColumns; i++) {
+                    drops[i] = {
+                        y: Math.random() * -100, // Start above screen
+                        speed: Math.random() * 0.5 + 0.5
+                    };
+                }
+            }
+        });
+
+        function draw() {
+            // Semi-transparent black to create fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Set text color
+            ctx.fillStyle = isRed ? '#FF0000' : '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const drop = drops[i];
+
+                // Pick a random character
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+
+                // Draw the character
+                // We only draw if the floor of y changed or every frame?
+                // If we draw every frame, slower drops will be brighter/re-drawn more.
+                // That is actually a nice effect.
+                ctx.fillText(text, i * fontSize, Math.floor(drop.y) * fontSize);
+
+                // Sending the drop back to the top randomly after it has crossed the screen
+                // Adding a randomness to the reset to make the drops scattered on the Y axis
+                if (Math.floor(drop.y) * fontSize > canvas.height && Math.random() > 0.975) {
+                    drop.y = 0;
+                    // Randomize speed again for variety
+                    drop.speed = Math.random() * 0.5 + 0.5;
+                }
+
+                // Increment y coordinate
+                drop.y += drop.speed;
+            }
+            
+            requestAnimationFrame(draw);
+        }
+
+        // Start animation
+        draw();
+
+    </script>
+</body>
+</html>
